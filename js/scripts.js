@@ -40,13 +40,43 @@
     }
   })();
 
+  function addListItem(pokemon) {
+    // create elements:
+    var pokeLi = document.createElement('li');
+    var pokeName = document.createElement('p');
+    var pokeHeight = document.createElement('p');
+    var pokeInfoButton = document.createElement('button');
+
+    // assign values:
+    pokeName.innerHTML = pokemon.name;
+    pokeHeight.innerHTML = 'Height: ' + pokemon.height;
+    pokeInfoButton.innerHTML = pokemon.name;
+
+    // assign attributes:
+    pokeLi.classList.add('pokeListItem');
+
+    // append elements to main li:
+    pokeLi.appendChild(pokeName);
+    pokeLi.appendChild(pokeHeight);
+    pokeLi.appendChild(pokeInfoButton);
+
+    // append li to DOM ul:
+    document.querySelector('#pokemonList').append(pokeLi);
+
+    // add event listener:
+    pokeLi.addEventListener('click', function(event) {
+      showDetails(pokemon);
+    });
+  }
+
+  // get all pokemon objects from repository and add them to the DOM
   pokemonRepository.getAll().forEach(function(pokemon) {
-    let pokeName = pokemon.name;
-    let pokeHeight = pokemon.height;
-    document.write('<h1>Name: ' + pokeName + ' (height: ' + pokeHeight + ')</h1>');
-    if (pokeHeight > 4) {
-      document.write('<h3>Wow, that\'s big!</h3>');
-    }
-  })
+    addListItem(pokemon);
+  });
+
+  // the function run upon clicking a pokemon li
+  function showDetails(pokemon) {
+    console.log(pokemon);
+  }
 
 })();
