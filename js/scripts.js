@@ -2,23 +2,26 @@
 
   var pokemonRepository = (function() {
 
-    var pokemonRepository = [
-      {
-        name: 'Bulbasaur',
-        height: '7',
-        types: ['grass', 'poison']
-      },
-      {
-        name: 'Venusaur',
-        height: '2',
-        types: ['monster', 'grass']
-      },
-      {
-        name: 'Squirtle',
-        height: '5',
-        types: ['monster', 'water']
-      }
-    ];
+    var pokemonRepository = [];
+    var apiUrl = 'https://pokeapi.co/api/v2/pokemon/?limit=150';
+
+    function loadList() {
+      showLoadingMessage();
+      return fetch(apiUrl).then( (response) => {
+        return response.json();
+      }).then(function (json) {
+        json.results.forEach( (item) => {
+          var pokemon = {
+            name: item.name,
+            detailsUrl: item.url
+          };
+          add(pokemon);
+        });
+        hideLoadingMessage();
+      }).catch( (e) => {
+        console.error(e);
+      });
+    }
 
     function add(pokemon) {
       if (typeof pokemon === "object") {
@@ -34,9 +37,41 @@
       return pokemonRepository;
     }
 
+    function loadDetails(item) {
+      showLoadingMessage();
+      var url = item.detailsUrl;
+      return fetch(url).then( (response) => {
+        return response.json();
+      }).then( (details) => {
+        // Now we add the details to the item
+        item.imageUrl = details.sprites.front_default;
+        item.height = details.height;
+        item.types = Object.keys(details.types);
+        hideLoadingMessage();
+      }).catch( (e) => {
+        console.error(e);
+      });
+    }
+
+    function showLoadingMessage() {
+      var loadingIcon = document.createElement('div');
+      loadingIcon.innerHTML = 'Now loading!';
+      loadingIcon.classList.add('loading-icon');
+      document.querySelector('body').append(loadingIcon);
+    }
+
+    function hideLoadingMessage() {
+      var el = document.querySelector('.loading-icon');
+      setTimeout( () => {
+        el.remove();
+      }, 1000);
+    }
+
     return {
       add: add,
-      getAll: getAll
+      getAll: getAll,
+      loadList: loadList,
+      loadDetails: loadDetails
     }
   })();
 
@@ -64,19 +99,24 @@
     document.querySelector('#pokemonList').append(pokeLi);
 
     // add event listener:
-    pokeLi.addEventListener('click', function(event) {
+    pokeLi.addEventListener('click', (event) => {
       showDetails(pokemon);
     });
   }
 
-  // get all pokemon objects from repository and add them to the DOM
-  pokemonRepository.getAll().forEach(function(pokemon) {
-    addListItem(pokemon);
+  pokemonRepository.loadList().then( () => {
+    // get all pokemon objects from repository and add them to the DOM
+    pokemonRepository.getAll().forEach( (pokemon) => {
+      addListItem(pokemon);
+    });
   });
+
 
   // the function run upon clicking a pokemon li
   function showDetails(pokemon) {
-    console.log(pokemon);
+    pokemonRepository.loadDetails(pokemon).then( () => {
+      console.log(pokemon);
+    });
   }
 
 })();
